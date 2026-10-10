@@ -2,7 +2,7 @@
  * FloodSafe Frontend API Client Service
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta && import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:5000/api';
 
 /**
  * Check backend API health status
@@ -90,15 +90,15 @@ export async function analyzeRoutes(startInput, destinationInput, options = {}) 
     eventId: mode === 'historical' ? eventId : null
   };
 
-  if (startCoords && startCoords.latitude && startCoords.longitude) {
+  if (startCoords && typeof startCoords.latitude === 'number' && typeof startCoords.longitude === 'number') {
     payload.start = startCoords;
-  } else {
+  } else if (startInput) {
     payload.startLocation = startInput;
   }
 
-  if (destCoords && destCoords.latitude && destCoords.longitude) {
+  if (destCoords && typeof destCoords.latitude === 'number' && typeof destCoords.longitude === 'number') {
     payload.destination = destCoords;
-  } else {
+  } else if (destinationInput) {
     payload.destinationLocation = destinationInput;
   }
 

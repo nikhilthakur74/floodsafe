@@ -4,6 +4,11 @@
  */
 
 const OPEN_METEO_ELEVATION_URL = 'https://api.open-meteo.com/v1/elevation';
+const elevationCacheMap = new Map();
+
+export function clearElevationCache() {
+  elevationCacheMap.clear();
+}
 
 /**
  * Get elevation (in meters) for a single lat/lng point
@@ -46,6 +51,12 @@ export async function calculateRelativeElevationAnalysis(latitude, longitude) {
 
   const lat = Number(latitude);
   const lng = Number(longitude);
+  const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+
+  if (elevationCacheMap.has(cacheKey)) {
+    return elevationCacheMap.get(cacheKey);
+  }
+
   const offset = 0.005; // ~500m offset for local terrain comparison
 
   const points = [
@@ -88,13 +99,15 @@ export async function calculateRelativeElevationAnalysis(latitude, longitude) {
       explanation = 'Level with nearby terrain';
     }
 
-    return {
+    const result = {
       targetElevationMeters: targetElevation,
       surroundingAverageMeters: surroundingAvg,
       relativeElevationMeters: relativeElevation,
       explanation,
       riskScore
     };
+    elevationCacheMap.set(cacheKey, result);
+    return result;
   } catch (error) {
     console.warn('[Relative Elevation Calculation Error]:', error.message);
     return null;

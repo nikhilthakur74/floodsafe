@@ -3,8 +3,8 @@ import { MapPin, Navigation, Search, AlertCircle, ArrowRightLeft, History, Cloud
 import { analyzeRoutes } from '../services/api';
 
 export default function RouteForm({ onRoutesCalculated, isAnalyzing, setIsAnalyzing }) {
-  const [startText, setStartText] = useState('Connaught Place, Delhi');
-  const [startCoords, setStartCoords] = useState({ latitude: 28.6304, longitude: 77.2177 });
+  const [startText, setStartText] = useState('New Delhi Station (Ajmeri Gate)');
+  const [startCoords, setStartCoords] = useState({ latitude: 28.6435, longitude: 77.2215 });
 
   const [destText, setDestText] = useState('IGI Airport, Delhi');
   const [destCoords, setDestCoords] = useState({ latitude: 28.5562, longitude: 77.1000 });
@@ -108,7 +108,9 @@ export default function RouteForm({ onRoutesCalculated, isAnalyzing, setIsAnalyz
               From
             </label>
             <span className="text-[10px] text-slate-400 font-mono">
-              {startCoords.latitude}, {startCoords.longitude}
+              {startCoords && typeof startCoords.latitude === 'number' && typeof startCoords.longitude === 'number'
+                ? `${startCoords.latitude}, ${startCoords.longitude}`
+                : 'Text location (Geocodes on Submit)'}
             </span>
           </div>
           <input
@@ -143,7 +145,9 @@ export default function RouteForm({ onRoutesCalculated, isAnalyzing, setIsAnalyz
               To
             </label>
             <span className="text-[10px] text-slate-400 font-mono">
-              {destCoords.latitude}, {destCoords.longitude}
+              {destCoords && typeof destCoords.latitude === 'number' && typeof destCoords.longitude === 'number'
+                ? `${destCoords.latitude}, ${destCoords.longitude}`
+                : 'Text location (Geocodes on Submit)'}
             </span>
           </div>
           <input

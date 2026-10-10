@@ -28,7 +28,7 @@ export default function Header({ apiStatus }) {
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-900 px-3.5 py-1.5 rounded-full border border-slate-800 font-medium">
             <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-            <span>Historical intelligence enabled</span>
+            <span>Historical Dataset Active</span>
           </div>
 
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300">

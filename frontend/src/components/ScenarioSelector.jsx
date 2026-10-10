@@ -147,7 +147,7 @@ export default function ScenarioSelector({ onSelectEvent }) {
 
           {liveLoading ? (
             <div className="text-xs text-slate-400 p-4 text-center">Fetching live Open-Meteo precipitation data...</div>
-          ) : liveWeather ? (
+          ) : (liveWeather && liveWeather.status !== 'unavailable' && liveWeather.forecast) ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl">
                 <span className="text-[10px] text-slate-400 uppercase font-semibold">Next 1h</span>
@@ -175,8 +175,14 @@ export default function ScenarioSelector({ onSelectEvent }) {
               </div>
             </div>
           ) : (
-            <div className="text-xs text-rose-400 p-3 bg-rose-950/30 border border-rose-900/50 rounded-xl">
-              Unable to load live weather. Ensure backend server is running.
+            <div className="text-xs text-amber-300 p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-amber-400">
+                <AlertTriangle className="w-4 h-4" />
+                Live Weather Data Unavailable
+              </div>
+              <p className="text-slate-300">
+                {liveWeather?.message || 'Live weather forecast data is currently unavailable (HTTP 429 Rate Limited or network error). Live flood risk could not be assessed.'}
+              </p>
             </div>
           )}
         </div>
@@ -227,7 +233,7 @@ export default function ScenarioSelector({ onSelectEvent }) {
                 ) : (
                   <>
                     <Calculator className="w-4 h-4" />
-                    Calculate Flood Risk
+                    Calculate Risk Index
                   </>
                 )}
               </button>
@@ -305,7 +311,7 @@ export default function ScenarioSelector({ onSelectEvent }) {
                     <div>
                       <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                         <ShieldAlert className="w-4 h-4 text-amber-400" />
-                        Estimated Waterlogging Risk
+                        Prototype Risk Index
                       </h4>
                       <p className="text-xs text-slate-400 mt-0.5">4-Signal Risk Assessment for {riskResult.eventTitle}</p>
                     </div>

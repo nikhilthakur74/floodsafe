@@ -26,11 +26,11 @@ const startIcon = createMarkerIcon('#10b981', 18);
 const destIcon = createMarkerIcon('#f43f5e', 18);
 const hotspotIcon = createMarkerIcon('#f59e0b', 22, '#f59e0b');
 
-// Distinct color tokens for genuine route visual contrast
+// Distinct color tokens for route visual contrast
 const ROUTE_COLOR_PALETTE = [
-  { primary: '#10b981', name: 'Emerald Cyan' },   // Route 1
-  { primary: '#f59e0b', name: 'Amber Orange' },  // Route 2
-  { primary: '#3b82f6', name: 'Royal Indigo' }   // Route 3
+  { primary: '#10b981', name: 'Emerald (Recommended)' }, // Route 1
+  { primary: '#3b82f6', name: 'Royal Blue' },            // Route 2
+  { primary: '#8b5cf6', name: 'Purple Slate' }           // Route 3
 ];
 
 /**
@@ -73,32 +73,38 @@ export default function MapView({ routeInfo, routeAnalysisData, selectedRouteId,
   const routes = routeAnalysisData?.routes || [];
   const recommendedId = routeAnalysisData?.recommendedRouteId;
 
-  const startCoords = routeAnalysisData?.startCoordinates
+  const startCoords = (routeAnalysisData?.startCoordinates && typeof routeAnalysisData.startCoordinates.latitude === 'number' && typeof routeAnalysisData.startCoordinates.longitude === 'number')
     ? [routeAnalysisData.startCoordinates.latitude, routeAnalysisData.startCoordinates.longitude]
-    : [28.6304, 77.2177];
+    : [28.6435, 77.2215];
 
-  const destCoords = routeAnalysisData?.destinationCoordinates
+  const destCoords = (routeAnalysisData?.destinationCoordinates && typeof routeAnalysisData.destinationCoordinates.latitude === 'number' && typeof routeAnalysisData.destinationCoordinates.longitude === 'number')
     ? [routeAnalysisData.destinationCoordinates.latitude, routeAnalysisData.destinationCoordinates.longitude]
     : [28.5562, 77.1000];
 
   const activeSelectedId = selectedRouteId || recommendedId || (routes[0] && routes[0].id);
   const activeRoute = routes.find(r => r.id === activeSelectedId) || routes[0];
 
-  // Collect hotspots detected on the selected route
+  // Collect hotspots detected on the selected route (only include valid geocoded hotspots)
   const hotspotMap = new Map();
   routes.forEach(r => {
     const isSelected = r.id === activeSelectedId;
     if (isSelected && r.risk && r.risk.detectedHotspots) {
       r.risk.detectedHotspots.forEach(spot => {
         if (!hotspotMap.has(spot.name)) {
-          const coords = spot.name === 'Minto Bridge'
-            ? [28.637179, 77.222333]
-            : [startCoords[0], startCoords[1]];
+          let coords = null;
+          if (typeof spot.latitude === 'number' && typeof spot.longitude === 'number' && !isNaN(spot.latitude) && !isNaN(spot.longitude)) {
+            coords = [spot.latitude, spot.longitude];
+          } else if (spot.name === 'Minto Bridge') {
+            coords = [28.637179, 77.222333];
+          }
 
-          hotspotMap.set(spot.name, {
-            ...spot,
-            coords
-          });
+          // Only add to map rendering if valid numeric coordinates exist
+          if (coords && typeof coords[0] === 'number' && typeof coords[1] === 'number' && !isNaN(coords[0]) && !isNaN(coords[1])) {
+            hotspotMap.set(spot.name, {
+              ...spot,
+              coords
+            });
+          }
         }
       });
     }
@@ -122,23 +128,23 @@ export default function MapView({ routeInfo, routeAnalysisData, selectedRouteId,
         <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 px-3.5 py-2 rounded-xl shadow-lg pointer-events-auto flex items-center gap-2 text-xs font-semibold text-slate-200">
           <Compass className="w-4 h-4 text-teal-400" />
           <span>
-            {routes.length > 0 ? `Displaying ${routes.length} Genuine Routes` : 'Delhi Route & Flood Risk Map'}
+            {routes.length > 0 ? `Displaying ${routes.length} Route Alternatives` : 'Delhi Route & Flood Risk Map'}
           </span>
         </div>
 
         <div className="bg-slate-950/90 backdrop-blur-md border border-slate-800 px-3.5 py-2 rounded-xl shadow-lg pointer-events-auto flex items-center gap-3 text-xs text-slate-300">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500" />
-            <span>Start (CP)</span>
+            <span>Start</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />
-            <span>Dest (Airport)</span>
+            <span>Destination</span>
           </div>
           {routes.length > 0 && (
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
-              <span>Route 1 (Recommended)</span>
+              <span>Recommended Route</span>
             </div>
           )}
         </div>
@@ -164,8 +170,8 @@ export default function MapView({ routeInfo, routeAnalysisData, selectedRouteId,
             <Popup>
               <div className="p-1 text-slate-900 font-sans">
                 <strong className="text-xs uppercase text-emerald-600 block font-bold">Start Location</strong>
-                <p className="text-sm font-extrabold">{routeInfo?.start || 'Connaught Place, Delhi'}</p>
-                <p className="text-xs text-slate-600">28.6304, 77.2177</p>
+                <p className="text-sm font-extrabold">{routeInfo?.start || 'New Delhi Station (Ajmeri Gate)'}</p>
+                <p className="text-xs text-slate-600">{startCoords[0]}, {startCoords[1]}</p>
               </div>
             </Popup>
           </Marker>
@@ -176,25 +182,40 @@ export default function MapView({ routeInfo, routeAnalysisData, selectedRouteId,
               <div className="p-1 text-slate-900 font-sans">
                 <strong className="text-xs uppercase text-rose-600 block font-bold">Destination</strong>
                 <p className="text-sm font-extrabold">{routeInfo?.destination || 'IGI Airport, Delhi'}</p>
-                <p className="text-xs text-slate-600">28.5562, 77.1000</p>
+                <p className="text-xs text-slate-600">{destCoords[0]}, {destCoords[1]}</p>
               </div>
             </Popup>
           </Marker>
 
-          {/* Render Route Geometries with Layer Order & Distinct Colors */}
+          {/* Render Route Geometries with Visual Hierarchy based on actual risk severity */}
           {sortedRoutesForRendering.map((route) => {
             const origIndex = routes.findIndex(r => r.id === route.id);
             const isSelected = route.id === activeSelectedId;
             const isRec = route.id === recommendedId;
 
-            const colorConfig = ROUTE_COLOR_PALETTE[origIndex % ROUTE_COLOR_PALETTE.length];
-            const routeColor = colorConfig.primary;
+            // Route colors derived directly from severity level / recommendation status
+            let routeColor = isRec ? '#10b981' : '#3b82f6';
+            const severity = route.severityLevel?.toUpperCase();
+            if (!isRec) {
+              if (severity === 'HIGH' || severity === 'SEVERE') {
+                routeColor = '#f43f5e'; // Rose / Red
+              } else if (severity === 'MODERATE') {
+                routeColor = '#f59e0b'; // Amber
+              } else if (severity === 'LOW') {
+                routeColor = '#10b981'; // Emerald
+              }
+            }
+
+            if (isSelected && !isRec) {
+              // Highlight active selected route while keeping risk tone
+              routeColor = severity === 'HIGH' || severity === 'SEVERE' ? '#fb7185' : '#38bdf8';
+            }
 
             const pathOptions = {
               color: routeColor,
-              weight: isSelected ? 8 : 4,
-              opacity: isSelected ? 0.95 : 0.45,
-              dashArray: isSelected ? undefined : (isRec ? undefined : '6, 6')
+              weight: isRec ? (isSelected ? 9 : 7) : (isSelected ? 7 : 4),
+              opacity: isSelected ? 0.95 : (isRec ? 0.85 : 0.45),
+              dashArray: isRec ? undefined : (isSelected ? undefined : '6, 6')
             };
 
             return (
@@ -210,13 +231,13 @@ export default function MapView({ routeInfo, routeAnalysisData, selectedRouteId,
                   <div className="p-1 text-slate-900 font-sans space-y-1">
                     <strong className="text-xs uppercase text-teal-700 block font-bold">{route.name}</strong>
                     <p className="text-sm font-bold text-slate-900">
-                      {isRec ? '★ RECOMMENDED SAFE ROUTE' : `ALTERNATIVE ROUTE ${origIndex}`}
+                      {isRec ? '★ RECOMMENDED SAFER ROUTE' : `ALTERNATIVE ROUTE ${origIndex}`}
                     </p>
                     <p className="text-xs text-slate-700">
                       Duration: ~{Math.round(route.durationSeconds / 60)} min | Distance: {(route.distanceMeters / 1000).toFixed(1)} km
                     </p>
                     <p className="text-xs font-extrabold text-amber-700">
-                      Estimated Risk: {route.risk.average} / 100 ({route.severityLevel})
+                      Prototype risk index: {route.risk.maximum || route.risk.average} / 100 ({route.severityLevel})
                     </p>
                   </div>
                 </Popup>

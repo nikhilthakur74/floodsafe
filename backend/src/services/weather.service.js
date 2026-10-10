@@ -27,10 +27,20 @@ function maxPrecipitation(hourlyArray, startIndex, hours) {
   return Number(max.toFixed(2));
 }
 
+let cachedForecastResponse = null;
+let lastFetchTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Fetch and calculate Delhi precipitation forecast from Open-Meteo API
+ * Includes 5-minute memory caching and fallback for API rate limits (HTTP 429).
  */
 export async function getDelhiForecast() {
+  const now = Date.now();
+  if (cachedForecastResponse && (now - lastFetchTimestamp < CACHE_TTL_MS)) {
+    return cachedForecastResponse;
+  }
+
   try {
     const response = await fetch(OPEN_METEO_URL);
     
@@ -44,12 +54,12 @@ export async function getDelhiForecast() {
     const hourlyPrecip = rawData.hourly?.precipitation || [];
 
     // Find starting hour index matching current time (or fallback to index 0)
-    const now = new Date();
+    const nowDate = new Date();
     let currentIndex = 0;
 
     const foundIndex = hourlyTime.findIndex(t => {
       const timeDate = new Date(t);
-      return timeDate.getTime() >= now.getTime() - (60 * 60 * 1000);
+      return timeDate.getTime() >= nowDate.getTime() - (60 * 60 * 1000);
     });
 
     if (foundIndex !== -1) {
@@ -66,6 +76,9 @@ export async function getDelhiForecast() {
     };
 
     return {
+      status: 'ok',
+      isFallback: false,
+      isCached: false,
       location: 'Delhi',
       coordinates: {
         latitude: DELHI_LAT,
@@ -73,10 +86,30 @@ export async function getDelhiForecast() {
       },
       forecast,
       source: 'Open-Meteo',
-      rawOpenMeteo: rawData // Kept for raw inspection/verification
+      rawOpenMeteo: rawData
     };
   } catch (error) {
-    console.error('[Weather Service Error]:', error.message);
-    throw error;
+    console.warn('[Weather Service Fallback]:', error.message);
+    if (cachedForecastResponse) {
+      return {
+        ...cachedForecastResponse,
+        status: 'ok',
+        isCached: true,
+        source: 'Open-Meteo (Cached)'
+      };
+    }
+
+    // Graceful error status when API is unreachable or rate-limited (HTTP 429)
+    return {
+      status: 'unavailable',
+      isUnavailable: true,
+      isFallback: true,
+      statusCode: error.status || 429,
+      location: 'Delhi',
+      coordinates: { latitude: DELHI_LAT, longitude: DELHI_LON },
+      forecast: null,
+      source: 'Open-Meteo (Unavailable)',
+      message: `Live weather data is currently unavailable (${error.message || 'HTTP 429 Rate Limited'}).`
+    };
   }
 }

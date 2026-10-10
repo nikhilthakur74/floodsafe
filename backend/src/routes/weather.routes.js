@@ -13,10 +13,14 @@ router.get('/delhi', async (req, res) => {
 
     // Omit internal rawOpenMeteo object for clean API response standard
     const responsePayload = {
+      status: data.status || 'ok',
+      isUnavailable: !!data.isUnavailable,
+      isFallback: !!data.isFallback,
       location: data.location,
       coordinates: data.coordinates,
       forecast: data.forecast,
-      source: data.source
+      source: data.source,
+      message: data.message
     };
 
     res.status(200).json(responsePayload);

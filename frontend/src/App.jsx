@@ -9,7 +9,7 @@ import { Shield, Droplets, Waves } from 'lucide-react';
 export default function App() {
   const [apiStatus, setApiStatus] = useState('checking');
   const [routeInfo, setRouteInfo] = useState({
-    start: 'Connaught Place, Delhi',
+    start: 'New Delhi Station (Ajmeri Gate), Delhi',
     destination: 'IGI Airport, Delhi'
   });
 
@@ -28,11 +28,11 @@ export default function App() {
 
       // Demo-First Default State: Auto-trigger pre-loaded deterministic demo scenario
       setIsAnalyzing(true);
-      const demoResult = await analyzeRoutes('Connaught Place, Delhi', 'IGI Airport, Delhi', {
+      const demoResult = await analyzeRoutes('New Delhi Station (Ajmeri Gate), Delhi', 'IGI Airport, Delhi', {
         mode: 'historical',
         eventId: 'delhi-july-08-2023',
-        startCoords: { latitude: 28.637179, longitude: 77.222333 },
-        destCoords: { latitude: 28.5554, longitude: 77.0848 }
+        startCoords: { latitude: 28.6435, longitude: 77.2215 },
+        destCoords: { latitude: 28.5562, longitude: 77.1000 }
       });
       setIsAnalyzing(false);
 
@@ -76,7 +76,7 @@ export default function App() {
           <div className="max-w-3xl space-y-2 relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-semibold">
               <Droplets className="w-3.5 h-3.5 text-teal-400" />
-              <span>Historical Intelligence Enabled</span>
+              <span>Historical Replay Dataset Active</span>
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
@@ -88,7 +88,7 @@ export default function App() {
             </p>
             
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl pt-1">
-              FloodSafe compares current rainfall with historical rainfall patterns and documented waterlogging to recommend a safer route.
+              FloodSafe compares route options using rainfall indicators, historical similarity, documented waterlogging locations, and terrain to recommend a safer route.
             </p>
           </div>
 
@@ -129,6 +129,14 @@ export default function App() {
             />
           </section>
         )}
+
+        {/* Global Methodology Disclaimer */}
+        <section className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 space-y-1">
+          <p className="font-bold text-slate-300">Methodology & Data Transparency:</p>
+          <p className="leading-relaxed">
+            FloodSafe combines current rainfall, historical rainfall similarity, documented waterlogging evidence, and terrain into an explainable prototype risk index. It is a relative risk indicator, not a calibrated flood probability or guarantee. Historical rainfall patterns are derived from Open-Meteo modeled/reanalysis data, while documented waterlogging locations come from cited historical reports and official coordinate evidence.
+          </p>
+        </section>
       </main>
 
       {/* Footer */}

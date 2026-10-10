@@ -60,6 +60,7 @@ export function calculateRainfallSimilarity(maxRainfallMm, benchmarkMm = 90) {
 }
 
 export function getSeverityLevel(score) {
+  if (score === null || score === undefined || isNaN(score)) return 'UNAVAILABLE';
   if (score <= 25) return 'LOW';
   if (score <= 50) return 'MODERATE';
   if (score <= 75) return 'HIGH';
